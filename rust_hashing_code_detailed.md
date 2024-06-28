@@ -1,4 +1,6 @@
-Let's go through the fields of the `SimpleHash` struct and explain their roles:
+You can alter the definition of `XorHasher` with the following fields.
+This `XorHasher` is for demonstration purpose. You can create a new `Hasher` type
+with the following fields which may potentially affect hash value of the input.
 
 1. `state: [u32; 8]`:
    - The `state` field is an array of 8 `u32` values that represent the internal state of the hash function.
@@ -23,6 +25,8 @@ Let's go through the fields of the `SimpleHash` struct and explain their roles:
    - It keeps track of the cumulative length of the input data.
    - The `length` is updated whenever new data is added to the `block` buffer.
    - In the `finalize()` function, the `length` is used to append the message length as a 64-bit value to the final block before processing.
+
+You can add or remove fields as you desire.
 
 These fields work together to maintain the state and handle the input data during the hash computation process:
 
