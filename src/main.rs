@@ -16,31 +16,35 @@ impl XorHasher {
         }
     }
 
+    // The previous update function was calculating the XOR of individual bits in sets of
+    // 32 (BLOCK_SIZE). To simplify this, we can group the bits that have the same "i % BLOCK_SIZE" and perform their XOR.
+
+    // However, since we don't want to use bitwise operations, we can utilize the special properties of XOR. For a group of bits, we can simply check the sum: if the sum is even, then the
+    // resultant bit in the final result of this group is going to be zero.
+
+    // For example: 1 ^ 1 ^ 1 ^ 1 ^ 0 ^ 1 ^ 0 ^ 0 ^ 0 ^ 1 = 1 (sum is odd)
+    //              1 ^ 1 ^ 1 ^ 1 ^ 1 ^ 0 = 0 (sum is even)
+
+    // But calculating the sum can cause number overflow in state[i % BLOCK_SIZE].
+    // Therefore, we can rely on parity: two numbers with the same parity always result in an even sum.
+
+    // I have combined all of this into the Update() function.
+
+
     fn update(&mut self, data: &[u8]) {
-        let mut offset = 0;
-
-        while offset < data.len() {
-            let mut block = [0u8; BLOCK_SIZE];
-            let remaining = data.len() - offset;
-            let block_size = remaining.min(BLOCK_SIZE);
-
-            block[..block_size].copy_from_slice(&data[offset..offset + block_size]);
-            self.process_block(&block);
-
-            offset += block_size;
-            self.block_count += 1;
+        for i in 0..data.len() {
+            if self.state[i % BLOCK_SIZE]%2 == data[i]%2 {
+                self.state[i % BLOCK_SIZE] = 0;
+            } else {
+                self.state[i%BLOCK_SIZE] = 1;
+            }
         }
+
+        self.block_count = (data.len() + BLOCK_SIZE)/BLOCK_SIZE;
     }
 
     fn finalize(self) -> [u8; HASH_SIZE] {
         self.state
-    }
-
-    fn process_block(&mut self, block: &[u8; BLOCK_SIZE]) {
-        for i in 0..HASH_SIZE {
-            // since we have HASH_SIZE == BLOCK_SIZE this is easy
-            self.state[i] ^= block[i];
-        }
     }
 }
 
